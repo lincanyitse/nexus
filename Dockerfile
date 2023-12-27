@@ -1,6 +1,6 @@
-FROM lincanyitse:8-jdk-debian
+FROM lincanyitse/openjdk:8-jdk-debian
 
-ARG NEXUS_VERSION=3.58.1-02
+ARG NEXUS_VERSION=3.63.0-01
 ARG NEXUS_DOWNLOAD_URL=https://download.sonatype.com/nexus/3/nexus-${NEXUS_VERSION}-unix.tar.gz
 ARG NEXUS_DOWNLOAD_SHA256=https://download.sonatype.com/nexus/3/nexus-${NEXUS_VERSION}-unix.tar.gz.sha256
 
