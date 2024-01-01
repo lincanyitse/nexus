@@ -9,10 +9,11 @@ ENV NEXUS_HOME=${SONATYPE_DIR}/nexus \
     NEXUS_DATA=/data \
     NEXUS_CONTEXT='' \
     SONATYPE_WORK=${SONATYPE_DIR}/sonatype-work \
-    DOCKER_TYPE='debian-docker'
+    DOCKER_TYPE='debian-docker' \
+    GOSU_VERSION=1.17
 
 RUN groupadd -g 200 -r nexus && \
-    useradd -u 200 nexus -g nexus -s /bin/false -d ${NEXUS_HOME} -c 'Nexus Repository Manager user'
+    useradd -u 200 nexus -g nexus -s /bin/false -G nogroup -d ${NEXUS_HOME} -c 'Nexus Repository Manager user'
 
 WORKDIR ${SONATYPE_DIR}
 
@@ -24,6 +25,8 @@ RUN apt-get update && \
     cat nexus-${NEXUS_VERSION}-unix.tar.gz.sha256  && \
     sha256sum -c nexus-${NEXUS_VERSION}-unix.tar.gz.sha256 && \
     tar -xvf nexus-${NEXUS_VERSION}-unix.tar.gz && \
+    curl -SL -o /usr/local/bin/gosu https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture) && \
+    chmod 755 /usr/local/bin/gosu && \
     apt-get purge --auto-remove -y  libvshadow-utils && \
     rm -rf nexus-${NEXUS_VERSION}-unix.tar.gz nexus-${NEXUS_VERSION}-unix.tar.gz.sha256 /tmp/* /var/lib/apt/lists/* && \
     mv nexus-${NEXUS_VERSION} ${NEXUS_HOME} && \
@@ -42,9 +45,11 @@ RUN ls ${NEXUS_HOME} && \
 VOLUME [ "${NEXUS_DATA}" ]
 
 EXPOSE 8081
-USER nexus
 
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+ENTRYPOINT [ "entrypoint.sh" ]
+
+USER nexus
 ENV INSTALL4J_ADD_VM_PARAMS="-Xms2703m -Xmx2703m -XX:MaxDirectMemorySize=2703m -Djava.util.prefs.userRoot=${NEXUS_DATA}/javaprefs"
 
 CMD [ "/opt/sonatype/nexus/bin/nexus", "run" ]
-
